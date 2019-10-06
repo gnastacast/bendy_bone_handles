@@ -13,7 +13,7 @@ bl_info = {
 
 import bpy
 from bpy.types import Operator
-from bpy.props import FloatProperty, EnumProperty
+from bpy.props import IntProperty, FloatProperty, EnumProperty
 from bpy_extras.object_utils import object_data_add, AddObjectHelper
 
 def add_transform_driver(bone, armature_obj, variable, bone_target, type):
@@ -26,7 +26,7 @@ def add_transform_driver(bone, armature_obj, variable, bone_target, type):
     var.targets[0].transform_type = type
     var.targets[0].transform_space = 'LOCAL_SPACE'
 
-def create_bbone(self, context, n_segments = 10, handle_length = 0.25):
+def create_bbone(self, context, handle_length = 0.25):
     #Create armature and armature object
     armature = bpy.data.armatures.new('Armature')
     #Link armature object to our scene
@@ -55,7 +55,7 @@ def create_bbone(self, context, n_segments = 10, handle_length = 0.25):
     
     armature.display_type = 'BBONE'
 
-    bone.bbone_segments = n_segments
+    bone.bbone_segments = self.n_segments
     bone.bbone_custom_handle_end = tail
     bone.bbone_custom_handle_start = head
     bone.bbone_custom_handle_start = head
@@ -111,6 +111,12 @@ class OBJECT_OT_add_bbone(Operator, AddObjectHelper):
         min = 1e-5, #If bone length is near zero it won't be created
         name = "Length",
         subtype = 'DISTANCE',
+    )
+        
+    n_segments: IntProperty(
+        default = 10,
+        min = 1,
+        name = "Number of Segments",
     )
     
     def item_cb(self, context):

@@ -130,7 +130,7 @@ class OBJECT_OT_add_bbone(Operator, AddObjectHelper):
 # Registration
 def add_bbone_button(self, context):
     self.layout.operator(
-        OBJECT_OT_add_object.bl_idname,
+        OBJECT_OT_add_bbone.bl_idname,
         text="Bendy Bone",
         icon='BONE_DATA')
 

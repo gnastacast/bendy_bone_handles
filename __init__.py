@@ -1,7 +1,7 @@
 bl_info = {
     "name": "Add New Bendy Bone",
     "author": "Nico Zevallos",
-    "version": (1, 1),
+    "version": (1, 0),
     "blender": (2, 80, 0),
     "location": "View3D > Add > Armature > New BendyBone",
     "description": "Adds a new Bendy Bone object with handles",
@@ -16,7 +16,7 @@ from bpy.types import Operator
 from bpy.props import IntProperty, FloatProperty, EnumProperty
 from bpy_extras.object_utils import object_data_add, AddObjectHelper
 
-def add_transform_driver(bone, variable, armature_obj, bone_target, type, transform_space='LOCAL_SPACE', expression=None):
+def add_transform_driver(bone, variable, armature_obj, bone_target, type, expression=None):
     driver = bone.driver_add(variable).driver
     if expression is not None:
         driver.type = 'SCRIPTED'
@@ -29,11 +29,11 @@ def add_transform_driver(bone, variable, armature_obj, bone_target, type, transf
     var.targets[0].id = armature_obj
     var.targets[0].bone_target = bone_target
     var.targets[0].transform_type = type
-    var.targets[0].transform_space = transform_space
+    var.targets[0].transform_space = 'LOCAL_SPACE'
 
 def create_bbone(self, context):
     #Create armature and armature object
-    armature = bpy.data.armatures.new('BBoneArmature')
+    armature = bpy.data.armatures.new('Armature')
     #Link armature object to our scene
     armature_obj = object_data_add(context, armature, operator=self)
 
@@ -48,7 +48,7 @@ def create_bbone(self, context):
     head.head = (0, 0, 0)
     head.tail = (0, 0, self.handle_size)
 
-    bone = edit_bones.new('bbone')
+    bone = edit_bones.new('bone')
     bone.head = (0, 0, 0)
     bone.tail = (0, 0, self.length)
 
@@ -74,7 +74,7 @@ def create_bbone(self, context):
     # exit edit mode to save bones so they can be used in pose mode
     bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
     bpy.ops.object.mode_set(mode='POSE', toggle=False)
-    bone_pose = bpy.context.object.pose.bones["bbone"]
+    bone_pose = bpy.context.object.pose.bones["bone"]
     bone_pose.bone.select=True
     bpy.context.object.data.bones.active = bone_pose.bone
     bpy.ops.pose.armature_apply()
@@ -82,16 +82,15 @@ def create_bbone(self, context):
     bone_pose.constraints["Stretch To"].target = armature_obj
     bone_pose.constraints["Stretch To"].subtarget = "tail"
     bone_pose.constraints["Stretch To"].head_tail = 0
-    bone_pose.constraints["Stretch To"].bulge = 0
     
-    add_transform_driver(bone_pose, 'bbone_scaleinx',  armature_obj, 'head', 'SCALE_X', transform_space='WORLD_SPACE')
-    add_transform_driver(bone_pose, 'bbone_scaleiny',  armature_obj, 'head', 'SCALE_Z', transform_space='WORLD_SPACE')
-    add_transform_driver(bone_pose, 'bbone_scaleoutx', armature_obj, 'tail', 'SCALE_X', transform_space='WORLD_SPACE')
-    add_transform_driver(bone_pose, 'bbone_scaleouty', armature_obj, 'tail', 'SCALE_Z', transform_space='WORLD_SPACE')
+    add_transform_driver(bone_pose, 'bbone_scaleinx',  armature_obj, 'head', 'SCALE_X')
+    add_transform_driver(bone_pose, 'bbone_scaleiny',  armature_obj, 'head', 'SCALE_Z')
+    add_transform_driver(bone_pose, 'bbone_scaleoutx', armature_obj, 'tail', 'SCALE_X')
+    add_transform_driver(bone_pose, 'bbone_scaleouty', armature_obj, 'tail', 'SCALE_Z')
     add_transform_driver(bone_pose, 'bbone_easein',  armature_obj, 'head', 'SCALE_Y',
-                         expression="(var - 1) * self.bone.bbone_easein")
+                         "(var - 1) * self.bone.bbone_easein")
     add_transform_driver(bone_pose, 'bbone_easeout', armature_obj, 'tail', 'SCALE_Y',
-                         expression="(var - 1) * self.bone.bbone_easeout")
+                         "(var - 1) * self.bone.bbone_easeout")
     
     try:
         display_obj = bpy.context.scene.objects[self.handle_display_obj]
